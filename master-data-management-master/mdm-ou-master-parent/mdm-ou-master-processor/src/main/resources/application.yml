@@ -1,0 +1,81 @@
+spring:
+
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://172.31.61.236:3306/masterdb?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&requireSSL=false&verifyServerCertificate=false
+    username: gatidev
+    password: rxv3rPw#
+    hikari:
+     maximum-pool-size: 5
+  jpa:
+    hibernate.ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL57InnoDBDialect
+        enable_lazy_load_no_trans: true
+
+  kafka:
+    admin:
+      client-id: OuMasterProcessor
+  cloud:
+    stream:
+      kafka:
+        binder:
+           brokers: localhost:9092
+           headers: 
+             -userName
+             -operation
+           min-partition-count: 2
+           auto-add-partitions: true
+           replication-factor: 1
+           #required-acks: 1
+           configuration:
+            schema.registry.url: http://localhost:8081
+        bindings:
+           oumaster-input:
+             auto-rebalance-enabled: true
+             auto-commit-offset: true
+             auto-commit-on-error: true
+             #start-offset: earliest
+             start-offset: latest
+             #reset-offsets: true
+             #enable-dlq: true
+             consumer:
+               configuration:
+                 client.id: OuMasterProcessor
+      bindings:
+        oumaster-input:
+          destination: test-topic3
+          content-type: application/*+avro
+          group: mdm-consumer-group
+          consumer:
+            concurrency: 1
+            max-attempts: 3
+            partitioned: true
+             
+      schemaRegistryClient:
+        endpoint: http://localhost:8081
+        cached: true
+      schema:
+        avro:
+          schema-locations: classpath:avro/oumaster.avsc
+#  zipkin:
+#    sender:
+#      type: kafka
+
+management:
+  endpoints.web.exposure.include: "*"
+  endpoint.health.show-details: always
+
+server:
+   port: 8083
+
+logging:
+  level:
+    root: ERROR
+    org.sringframework: ERROR 
+    com.gati: debug
+#sleuth:
+#  sampler.probability: 1.0  

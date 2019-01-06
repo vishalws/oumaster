@@ -1,0 +1,60 @@
+spring:
+#  zipkin:
+#    sender:
+#      type: kafka
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://172.31.61.236:3306/masterdb?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&requireSSL=false&verifyServerCertificate=false
+    username: gatidev
+    password: rxv3rPw#
+    hikari:
+     maximum-pool-size: 5
+  jpa:
+    hibernate.ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL57InnoDBDialect
+        enable_lazy_load_no_trans: true
+  kafka:
+    client-id: OuMasterProducer
+    admin:
+      client-id: OuMasterProducer    
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          auto-create-topics: true
+          replication-factor: 1
+          auto-add-partitions: true
+          headers:
+            - userName
+            - operation
+          min-partition-count: 2
+          configuration:
+            schema.registry.url: http://localhost:8081
+      bindings:
+        oumaster-output:
+          contentType: application/*+avro
+          #destination: ou-master-topic
+          destination: test-topic3
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 2
+      schemaRegistryClient:
+        endpoint: http://localhost:8081
+        cached: true
+      schema:
+        avro:
+          schema-locations: classpath:avro/oumaster.avsc
+  #sleuth:
+   #  sampler.probability: 1.0
+server:
+   port: 8082             
+logging:
+  level:
+    root: info
+    org.springframework: info
+    com.gati: debug
